@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ID3Test {
 
-    public static List<Data> KINOBESUCH = Arrays.asList(
+    public static final List<Data> KINOBESUCH = Arrays.asList(
             new Data(true, Arrays.asList("hoch", "€€", true, "schlecht", true, "top", "AC", "int", true, "Freunde")),
             new Data(true, Arrays.asList("mittel", "€", true, "mittel", false, "mittel", "KO", "int", false, "Paar")),
             new Data(false, Arrays.asList("mittel", "€", false, "mittel", true, "mittel", "DR", "int", false, "Freunde")),
@@ -29,6 +29,8 @@ public class ID3Test {
             new Data(false, Arrays.asList("mittel", "€", true, "schön", true, "top", "DR", "int", true, "Freunde")),
             new Data(true, Arrays.asList("mittel", "€", true, "schlecht", false, "mittel", "AC", "int", false, "Paar"))
     );
+
+
 
     @Test
     void entropyTestMuenze() {
@@ -48,17 +50,22 @@ public class ID3Test {
 
     @Test
     void attributauswahllUndInformationsgewinnA() {
-        assertEquals(9968, Math.round(ID3.entropy(KINOBESUCH) * 10000));
+        assertEquals(9968, Math.round(new ID3(KINOBESUCH).entropy() * 10000));
     }
 
     @Test
     void attributauswahllUndInformationsgewinnB() {
-        assertEquals(2964, Math.round(ID3.gain(KINOBESUCH, 9) * 10000));
+        assertEquals(2964, Math.round(new ID3(KINOBESUCH).gain(9) * 10000));
     }
 
     @Test
     void attributauswahllUndInformationsgewinnC() {
-        assertEquals(635, Math.round(ID3.gain(KINOBESUCH, 6) * 10000));
+        assertEquals(635, Math.round(new ID3(KINOBESUCH).gain(6) * 10000));
+    }
+
+    @Test
+    void chooseBEstAttribute() {
+        assertEquals(9, new ID3(KINOBESUCH).chooseAttribute(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)));
     }
 
 }

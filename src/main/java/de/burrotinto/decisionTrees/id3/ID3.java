@@ -2,17 +2,24 @@ package de.burrotinto.decisionTrees.id3;
 
 import de.burrotinto.MathHelper;
 import de.burrotinto.decisionTrees.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class ID3 {
+
+    protected final List<Data> data;
+    protected Optional<Double> entropy = Optional.empty();
 
     /**
      * @param list
@@ -36,24 +43,41 @@ public class ID3 {
     }
 
 
-    public static double entropy(List<Data> data) {
-        return entropyOfList(data.stream().map(Data::getClassification).collect(Collectors.toList()));
+    public double entropy() {
+        if (entropy.isEmpty()) {
+            entropy = Optional.of(entropyOfList(data.stream().map(Data::getClassification).collect(Collectors.toList())));
+        }
+        return entropy.get();
     }
 
     //Todo
-    public static double gain(List<Data> data, int knownAttribut) {
-        double entropy = entropy(data);
+    public double gain(int knownAttribut) {
+        double entropy = entropy();
 
-        Map<Object, List<Data>> known = data.stream().collect(Collectors.groupingBy(d -> {
-            return d.getAttributes().get(knownAttribut);
-        }));
+        Map<Object, List<Data>> known = data.stream().collect(Collectors.groupingBy(d -> d.getAttributes().get(knownAttribut)));
 
-
-        entropy -= known.values().stream().mapToDouble(d -> {
-            return (((double) d.size()) / data.size()) * entropy(d);
-        }).sum();
-
+        entropy -= known.values().stream().mapToDouble(d -> (((double) d.size()) / data.size()) * new ID3(d).entropy()).sum();
 
         return entropy;
     }
+
+    public int chooseAttribute(List<Integer> attributes) {
+
+        int bestAttribute = 0;
+        double maxEntropy = 0;
+
+        val it = attributes.iterator();
+        var next = 0;
+        while (it.hasNext()) {
+            next = it.next();
+            double e = gain(next);
+
+            if (e > maxEntropy) {
+                maxEntropy = e;
+                bestAttribute = next;
+            }
+        }
+        return bestAttribute;
+    }
 }
+
